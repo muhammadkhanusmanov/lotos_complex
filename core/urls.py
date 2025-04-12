@@ -1,8 +1,10 @@
-from django.urls import path
-from .views import telegram_auth, profile_view
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
-    path('api/auth/', telegram_auth, name='telegram-auth'),
-    path('api/profile/', profile_view, name='profile'),
-    # Boshqa URLlar...
-]
+    path('admin/', admin.site.urls),
+    path('api/', include('main.urls')),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
