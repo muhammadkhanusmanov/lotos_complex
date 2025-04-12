@@ -128,7 +128,11 @@ STATIC_ROOT = BASE_DIR / 'static'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS sozlamalari
-CORS_ALLOWED_ORIGINS = ['*']
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",       # React development server
+    "http://localhost:8080",       # Vue development server
+    "https://web.telegram.org",    # Telegram Web App
+]
 
 # Qo'shimcha CORS sozlamalari
 CORS_ALLOW_METHODS = [
@@ -152,9 +156,9 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Development uchun barcha originlarga ruxsat berish (faqat development rejimida!)
+# Development rejimida barcha originlarga ruxsat berish
 if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_ALL_ORIGINS = True  # Bu barcha domainlardan so'rovlarga ruxsat beradi
 
 # Production muhiti uchun qo'shimcha xavfsizlik sozlamalari
 if not DEBUG:
