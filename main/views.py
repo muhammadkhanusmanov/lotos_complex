@@ -15,17 +15,46 @@ from .serializers import (
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 import json
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 class ProductListView(generics.ListAPIView):
+    """
+    Barcha aktiv mahsulotlarni ko'rish
+    """
     queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
+
+    @swagger_auto_schema(
+        operation_description="Barcha aktiv mahsulotlar ro'yxatini olish",
+        responses={200: ProductSerializer(many=True)}
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
 class OrderCreateView(generics.CreateAPIView):
+    """
+    Yangi buyurtma yaratish
+    """
     serializer_class = OrderCreateSerializer
+
+    @swagger_auto_schema(
+        operation_description="Yangi buyurtma yaratish",
+        request_body=OrderCreateSerializer,
+        responses={
+            201: openapi.Response(
+                description="Buyurtma muvaffaqiyatli yaratildi",
+                schema=OrderSerializer
+            ),
+            400: "Noto'g'ri ma'lumotlar"
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         order = serializer.save()
@@ -56,13 +85,26 @@ class OrderDetailView(generics.RetrieveAPIView):
     serializer_class = OrderSerializer
 
 class IngredientCalculationView(APIView):
+    """
+    Kunlik masalliqlar hisobi
+    """
+    @swagger_auto_schema(
+        operation_description="Kunlik masalliqlar hisobini olish",
+        manual_parameters=[
+            openapi.Parameter(
+                'date',
+                openapi.IN_QUERY,
+                description="Sana (YYYY-MM-DD formatida)",
+                type=openapi.TYPE_STRING,
+                required=False
+            )
+        ],
+        responses={200: IngredientCalculationSerializer(many=True)}
+    )
     def get(self, request):
-        # Sanani olish (default: bugun)
         date = request.query_params.get('date', timezone.now().date())
-        
         calculations = IngredientCalculation.objects.filter(date=date)
         serializer = IngredientCalculationSerializer(calculations, many=True)
-        
         return Response(serializer.data)
 
 class DailyIngredientCalculationView(APIView):
@@ -97,31 +139,41 @@ class IngredientListView(generics.ListAPIView):
     serializer_class = IngredientSerializer
 
 class ProductCreateView(generics.CreateAPIView):
+    """
+    Yangi mahsulot yaratish
+    """
     serializer_class = ProductCreateSerializer
     parser_classes = (MultiPartParser, FormParser)
-    
-    def create(self, request, *args, **kwargs):
-        product_data = request.data.copy()
-        ingredients_data = json.loads(request.data.get('ingredients', '[]'))
-        
-        # Mahsulot yaratish
-        product_serializer = ProductCreateSerializer(data=product_data)
-        if product_serializer.is_valid():
-            product = product_serializer.save()
-            
-            # Ingredientlarni qo'shish
-            for ingredient_data in ingredients_data:
-                ProductIngredient.objects.create(
-                    product=product,
-                    ingredient_id=ingredient_data['ingredient_id'],
-                    quantity=ingredient_data['quantity']
+
+    @swagger_auto_schema(
+        operation_description="Yangi mahsulot yaratish",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'name': openapi.Schema(type=openapi.TYPE_STRING),
+                'description': openapi.Schema(type=openapi.TYPE_STRING),
+                'price': openapi.Schema(type=openapi.TYPE_NUMBER),
+                'image': openapi.Schema(type=openapi.TYPE_FILE),
+                'is_active': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                'ingredients': openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            'ingredient_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                            'quantity': openapi.Schema(type=openapi.TYPE_NUMBER)
+                        }
+                    )
                 )
-            
-            # To'liq ma'lumotni qaytarish
-            serializer = ProductDetailSerializer(product)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        return Response(product_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            }
+        ),
+        responses={
+            201: ProductDetailSerializer,
+            400: "Noto'g'ri ma'lumotlar"
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 class ProductUpdateView(generics.UpdateAPIView):
     queryset = Product.objects.all()
