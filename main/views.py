@@ -71,9 +71,9 @@ class OrderCreateView(generics.CreateAPIView):
             for product_ingredient in product.product_ingredients.all():
                 required_quantity = product_ingredient.quantity * quantity
                 
-                # Kunlik hisobga qo'shish
+                # Buyurtma sanasi uchun hisobga qo'shish
                 calculation, created = IngredientCalculation.objects.get_or_create(
-                    date=timezone.now().date(),
+                    date=order.delivery_date,  # Buyurtma sanasi
                     ingredient=product_ingredient.ingredient,
                     defaults={'required_quantity': 0}
                 )

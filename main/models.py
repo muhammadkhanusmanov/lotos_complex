@@ -103,6 +103,7 @@ class Order(models.Model):
     telegram_user_id = models.BigIntegerField(verbose_name="Telegram foydalanuvchi ID")
     customer_name = models.CharField(max_length=100, blank=True, verbose_name="Mijoz ismi")
     phone_number = models.CharField(max_length=20, blank=True, verbose_name="Telefon raqam")
+    delivery_date = models.DateField(verbose_name="Yetkazib berish sanasi")
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
