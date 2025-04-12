@@ -100,6 +100,7 @@ POST /api/orders/
     "telegram_user_id": 123456789,
     "customer_name": "John Doe",
     "phone_number": "+998901234567",
+    "delivery_date": "2024-04-15",
     "items": [
         {
             "product": 1,
@@ -115,6 +116,7 @@ POST /api/orders/
     "telegram_user_id": 123456789,
     "customer_name": "John Doe",
     "phone_number": "+998901234567",
+    "delivery_date": "2024-04-15",
     "status": "new",
     "total_amount": "100000.00",
     "items": [
@@ -142,6 +144,7 @@ GET /api/orders/{id}/
     "telegram_user_id": 123456789,
     "customer_name": "John Doe",
     "phone_number": "+998901234567",
+    "delivery_date": "2024-04-15",
     "status": "new",
     "total_amount": "100000.00",
     "items": [...]
@@ -184,15 +187,15 @@ POST /api/ingredients/create/
 
 ### Masalliqlar hisobi (Ingredient Calculations)
 
-#### 1. Kunlik masalliqlar hisobi
+#### 1. Ma'lum sana uchun masalliqlar hisobi
 ```http
-GET /api/ingredients/calculations/?date=2024-04-10
+GET /api/ingredients/calculations/?date=2024-04-15
 ```
 **Response:**
 ```json
 [
     {
-        "date": "2024-04-10",
+        "date": "2024-04-15",
         "ingredient_name": "Guruch",
         "unit": "kg",
         "required_quantity": 5.5,
@@ -203,7 +206,7 @@ GET /api/ingredients/calculations/?date=2024-04-10
 
 #### 2. Davr uchun masalliqlar hisobi
 ```http
-GET /api/ingredients/calculations/daily/?start_date=2024-04-01&end_date=2024-04-10
+GET /api/ingredients/calculations/daily/?start_date=2024-04-01&end_date=2024-04-15
 ```
 **Response:**
 ```json
@@ -216,30 +219,45 @@ GET /api/ingredients/calculations/daily/?start_date=2024-04-01&end_date=2024-04-
 ]
 ```
 
-## Status kodlari
+## Muhim eslatmalar
 
-- `200 OK` - So'rov muvaffaqiyatli bajarildi
-- `201 Created` - Yangi resurs yaratildi
-- `400 Bad Request` - So'rovda xatolik bor
-- `404 Not Found` - So'ralgan resurs topilmadi
-- `500 Internal Server Error` - Serverda xatolik yuz berdi
+1. **Buyurtma sanasi**:
+   - Har bir buyurtmada `delivery_date` (yetkazib berish sanasi) ko'rsatilishi shart
+   - Sana ISO formatda (`YYYY-MM-DD`) bo'lishi kerak
+   - Masalliqlar hisobi buyurtma sanasi bo'yicha hisoblanadi
 
-## Xavfsizlik
+2. **Masalliqlar hisobi**:
+   - Har bir buyurtma uchun masalliqlar avtomatik hisoblanadi
+   - Hisoblar buyurtmaning yetkazib berish sanasiga qarab saqlanadi
+   - Admin panelda har bir sana uchun kerakli masalliqlarni ko'rish mumkin
 
-- API barcha so'rovlar uchun `Content-Type: application/json` headerini talab qiladi
-- Fayl yuklash uchun `multipart/form-data` ishlatiladi
-- CORS sozlamalari orqali faqat ruxsat berilgan domainlardan so'rovlar qabul qilinadi
+3. **Status kodlari**:
+   - `200 OK` - So'rov muvaffaqiyatli bajarildi
+   - `201 Created` - Yangi resurs yaratildi
+   - `400 Bad Request` - So'rovda xatolik bor
+   - `404 Not Found` - So'ralgan resurs topilmadi
+
+4. **Xavfsizlik**:
+   - API barcha so'rovlar uchun `Content-Type: application/json` headerini talab qiladi
+   - Fayl yuklash uchun `multipart/form-data` ishlatiladi
+   - CORS sozlamalari orqali faqat ruxsat berilgan domainlardan so'rovlar qabul qilinadi
 
 ## Test qilish
 
-API ni test qilish uchun Swagger dokumentatsiyasidan foydalanishingiz mumkin:
-- Swagger UI: `/swagger/`
-- ReDoc: `/redoc/`
-- OpenAPI JSON: `/swagger.json`
+API ni test qilish uchun:
+1. Swagger UI: `/swagger/`
+2. ReDoc: `/redoc/`
+3. OpenAPI JSON: `/swagger.json`
 
-## Eslatmalar
+Yoki `req.py` test skriptidan foydalaning:
+```bash
+python req.py
+```
 
-1. Barcha pul birliklari `decimal` formatida, 2 ta o'nlik son bilan
-2. Sanalar ISO format (`YYYY-MM-DD`)da yuborilishi kerak
-3. Rasmlar `jpg`, `png` formatida qabul qilinadi
-4. Telegram user ID `BigInteger` formatida bo'lishi kerak
+## Ma'lumotlar formatlari
+
+1. Pul birliklari: `decimal` (2 ta o'nlik son)
+2. Sanalar: ISO format (`YYYY-MM-DD`)
+3. Miqdorlar: `decimal` (3 ta o'nlik son)
+4. Telegram user ID: `BigInteger`
+5. Telefon raqamlar: E.164 format (masalan: `+998901234567`)
